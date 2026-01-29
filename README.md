@@ -1,0 +1,26 @@
+# 🤖 Moku Sniper & Market Tracker
+
+An automated tracking tool for Moku NFTs on the Ronin Network. This bot monitors the marketplace floor and specific NFT names, sending instant alerts to Telegram when prices drop below your targets.
+
+## ✨ Features
+* **Dual Monitoring:** Tracks both general rarity floors and specific NFT names simultaneously.
+* **Full Rarity Support:** Monitors Basic, Rare, Epic, and Legendary items.
+* **Smart Telegram Alerts:** Beautifully formatted messages with direct buy links and social integration.
+* **Optimized Performance:** Multi-file structure and rate-limit friendly scanning.
+
+## 🛠️ Installation
+
+1. **Install dependencies:**
+   -> pip install requests python-dotenv
+
+2. **Setup Environment Variables: Create a .env file in the root folder with:**
+BOT_TOKEN=your_telegram_bot_token
+CHAT_ID=your_telegram_chat_id
+API_KEY=your_skymavis_api_key
+
+3. **Run the bot:**
+python main.py
+
+
+## ⚙️ Configuration
+You can easily adjust prices, names, and emojis in the config.py file.
