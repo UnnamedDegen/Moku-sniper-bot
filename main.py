@@ -43,38 +43,61 @@ def scan_market(label, max_price, api_rarity, note, custom_emoji, target_name=No
       }
     }
     """
+    
     try:
-        response = requests.post(API_URL, json={'query': query, 'variables': variables}, headers=headers, timeout=15)
+        response = requests.post(API_URL, json={'query': query, 'variables': variables}, headers=headers, timeout=30)
+        
         if response.status_code == 200:
-            tokens = response.json().get('data', {}).get('erc721Tokens', {}).get('results', [])
+            data = response.json()
+            
+            # --- API Response Verification ---
+            if not data or 'data' not in data or data['data'] is None:
+                print("⚠️ API returned empty data. Skipping cycle...")
+                return 
+            # ---------------------------------
+
+            tokens = data.get('data', {}).get('erc721Tokens', {}).get('results', [])
+            
             for token in tokens:
-                if not token.get('order'): continue
+                if not token.get('order'): 
+                    continue
+                
                 price_ron = float(token['order']['currentPrice']) / 10**18
+                
                 if price_ron <= max_price:
                     alert_id = f"{token['tokenId']}_{price_ron}"
+                    
                     if alert_id not in seen_items:
                         buy_link = f"https://marketplace.roninchain.com/collections/{MOKU_CONTRACT}/{token['tokenId']}"
                         mode = f"TARGET: {label}" if target_name else f"GENERAL: {label}"
+                        
                         msg = (f"[\u200b]({buy_link}){custom_emoji} *{mode.upper()} DEAL!*\n"
                                f"------------------------------\n"
                                f"👾 *Item:* {token['name']}\n"
                                f"💰 *Price:* {price_ron:.4f} RON\n"
                                f"📝 *Note:* {note}")
+                        
                         send_alert(msg, buy_link)
                         seen_items.add(alert_id)
                         print(f"📢 Alert sent: {token['name']} ({price_ron} RON)")
+                        
     except Exception as e:
         print(f"Scan error: {e}")
 
 if __name__ == "__main__":
     while True:
         print(f"\n--- [{time.strftime('%H:%M:%S')}] Starting Scan ---")
+        
+        # 1. Scanning Target Config
         for name, limits in TARGET_CONFIG.items():
             for rarity in ["Basic", "Rare", "Epic", "Legendary"]:
                 if rarity in limits:
                     scan_market(name, limits[rarity], rarity, "Target price reached!", limits["emoji"], target_name=name)
                     time.sleep(0.4)
+        
+        # 2. Scanning General Market Floor
         for rarity, conf in GENERAL_CONFIG.items():
             scan_market(rarity, conf["max_price"], conf["api_val"], conf["note"], conf["emoji"])
             time.sleep(0.4)
+            
         time.sleep(15)
